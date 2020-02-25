@@ -4,7 +4,7 @@ use WebEd\Base\Repositories\Eloquent\EloquentBaseRepositoryCacheDecorator;
 
 use WebEd\Base\ModulesManagement\Repositories\Contracts\PluginsRepositoryContract;
 
-class PluginsRepositoryCacheDecorator extends EloquentBaseRepositoryCacheDecorator  implements PluginsRepositoryContract
+class PluginsRepositoryCacheDecorator extends EloquentBaseRepositoryCacheDecorator implements PluginsRepositoryContract
 {
     /**
      * @param $alias
@@ -12,6 +12,6 @@ class PluginsRepositoryCacheDecorator extends EloquentBaseRepositoryCacheDecorat
      */
     public function getByAlias($alias)
     {
-        return $this->beforeGet(__FUNCTION__, func_get_args());
+        return $this->model->where('alias', '=', $alias)->first();
     }
 }

@@ -1,10 +1,7 @@
 <?php namespace WebEd\Base\ModulesManagement\Http\Controllers;
 
 use WebEd\Base\Http\Controllers\BaseAdminController;
-use WebEd\Base\Support\DataTable\DataTables;
 use WebEd\Base\ModulesManagement\Http\DataTables\PluginsListDataTable;
-use WebEd\Base\ModulesManagement\Repositories\Contracts\PluginsRepositoryContract;
-use WebEd\Base\ModulesManagement\Repositories\PluginsRepository;
 use Illuminate\Support\Facades\Artisan;
 use Yajra\Datatables\Engines\BaseEngine;
 
@@ -15,24 +12,14 @@ class PluginsController extends BaseAdminController
     protected $dashboardMenuId = 'webed-plugins';
 
     /**
-     * @param PluginsRepository $repository
-     */
-    public function __construct(PluginsRepositoryContract $repository)
-    {
-        parent::__construct();
-
-        $this->repository = $repository;
-    }
-
-    /**
      * Get index page
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function getIndex(PluginsListDataTable $dataTable)
     {
-        $this->breadcrumbs->addLink(trans('webed-modules-management::base.plugins'));
+        $this->breadcrumbs->addLink(trans($this->module . '::base.plugins'));
 
-        $this->setPageTitle(trans('webed-modules-management::base.plugins'));
+        $this->setPageTitle(trans($this->module . '::base.plugins'));
 
         $this->getDashboardMenu($this->dashboardMenuId);
 
@@ -55,56 +42,58 @@ class PluginsController extends BaseAdminController
     {
         switch ((bool)$status) {
             case true:
-                return modules_management()->enableModule($module)->refreshComposerAutoload();
+                webed_plugins()->enableModule($module);
+                return modules_management()->refreshComposerAutoload();
                 break;
             default:
-                return modules_management()->disableModule($module)->refreshComposerAutoload();
+                webed_plugins()->disableModule($module);
+                return modules_management()->refreshComposerAutoload();
                 break;
         }
     }
 
     public function postInstall($alias)
     {
-        $module = get_module_information($alias);
+        $module = get_plugin($alias);
 
         if(!$module) {
-            return response_with_messages(trans('webed-modules-management::base.plugin_not_exists'), true, \Constants::ERROR_CODE);
+            return response_with_messages(trans($this->module . '::base.plugin_not_exists'), true, \Constants::ERROR_CODE);
         }
 
-        Artisan::call('module:install', [
+        Artisan::call('plugin:install', [
             'alias' => $alias
         ]);
 
-        return response_with_messages(trans('webed-modules-management::base.plugin_installed'));
+        return response_with_messages(trans($this->module . '::base.plugin_installed'));
     }
 
     public function postUpdate($alias)
     {
-        $module = get_module_information($alias);
+        $module = get_plugin($alias);
 
         if(!$module) {
-            return response_with_messages(trans('webed-modules-management::base.plugin_not_exists'), true, \Constants::ERROR_CODE);
+            return response_with_messages(trans($this->module . '::base.plugin_not_exists'), true, \Constants::ERROR_CODE);
         }
 
-        Artisan::call('module:update', [
+        Artisan::call('plugin:update', [
             'alias' => $alias
         ]);
 
-        return response_with_messages(trans('webed-modules-management::base.plugin_updated'));
+        return response_with_messages(trans($this->module . '::base.plugin_updated'));
     }
 
     public function postUninstall($alias)
     {
-        $module = get_module_information($alias);
+        $module = get_plugin($alias);
 
         if(!$module) {
-            return response_with_messages(trans('webed-modules-management::base.plugin_not_exists'), true, \Constants::ERROR_CODE);
+            return response_with_messages(trans($this->module . '::base.plugin_not_exists'), true, \Constants::ERROR_CODE);
         }
 
-        Artisan::call('module:uninstall', [
+        Artisan::call('plugin:uninstall', [
             'alias' => $alias
         ]);
 
-        return response_with_messages(trans('webed-modules-management::base.plugin_uninstalled'));
+        return response_with_messages(trans($this->module . '::base.plugin_uninstalled'));
     }
 }

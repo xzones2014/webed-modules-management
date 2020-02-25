@@ -5,35 +5,49 @@ class UpdateModulesSupport
     /**
      * @var array
      */
-    protected $batches = [];
+    protected $batches = [
+        'core' => [
+
+        ],
+        'plugins' => [
+
+        ],
+    ];
 
     /**
      * @param $moduleAlias
      * @param array $batches
+     * @param string $type
      * @return $this
      */
-    public function registerUpdateBatches($moduleAlias, array $batches)
+    public function registerUpdateBatches($moduleAlias, array $batches, $type = 'plugins')
     {
-        $this->batches[$moduleAlias] = $batches;
+        $this->batches[$type][$moduleAlias] = $batches;
 
         return $this;
     }
 
     /**
      * @param $moduleAlias
+     * @param string $type
      * @return $this
      */
-    public function loadBatches($moduleAlias)
+    public function loadBatches($moduleAlias, $type = 'plugins')
     {
-        $currentModuleInformation = get_module_information($moduleAlias);
+        if ($type == 'plugins') {
+            $currentModuleInformation = get_plugin($moduleAlias);
+        } else {
+            $currentModuleInformation = get_core_module($moduleAlias);
+        }
+
         if (!$currentModuleInformation) {
             return $this;
         }
 
-        ksort($this->batches);
+        ksort($this->batches[$type]);
 
         $installedModuleVersion = array_get($currentModuleInformation, 'installed_version');
-        foreach ($this->batches[$moduleAlias] as $version => $batch) {
+        foreach ($this->batches[$type][$moduleAlias] as $version => $batch) {
             if (!$installedModuleVersion || version_compare($version, $installedModuleVersion, '>')) {
                 require $batch;
             }
